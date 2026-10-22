@@ -1,0 +1,18 @@
+{% extends "base.html" %}{% block body %}
+<h1>Find a mentor</h1>
+{% if session.role=='mentee' %}
+<form class="card" method="post" action="{{ url_for('auto') }}">
+<h2>Book me the earliest session</h2>
+<p class="muted">Tell us the topic. We search every matching mentor's calendar and confirm the first open slot.</p>
+<div class="row">
+<label>Skill or industry<input name="keyword" placeholder="data science, banking, UPSC" required></label>
+<label>Preferred time<select name="part"><option value="any">Any time</option><option value="morning">Morning</option><option value="afternoon">Afternoon</option><option value="evening">Evening</option></select></label>
+<label style="flex:1">What do you want help with?<input name="topic" style="width:100%" placeholder="Resume review, switching to product roles..."></label>
+<button>Book earliest slot</button></div></form>{% endif %}
+<form class="row" style="margin-bottom:1rem"><input name="q" value="{{ q }}" placeholder="Search by name, industry or skill"><button class="alt">Search</button></form>
+<div class="grid">{% for m in mentors %}
+<div class="card"><h2><a href="{{ url_for('mentor', mid=m.id) }}">{{ m.name }}</a></h2>
+<div>{{ m.headline }}</div><p class="muted">{{ m.industry }} &middot; {{ m.years_exp }} years</p>
+<p>{% for s in m.skills.split(',') if s.strip() %}<span class="tag">{{ s.strip() }}</span>{% endfor %}</p>
+<p class="muted">{% if m.next_slot %}Next open: {{ m.next_slot.strftime('%a %d %b, %I:%M %p') }}{% else %}No open slots in the next 2 weeks{% endif %}</p></div>
+{% else %}<p>No mentors match yet. Try a broader search.</p>{% endfor %}</div>{% endblock %}

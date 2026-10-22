@@ -1,0 +1,39 @@
+{% extends "base.html" %}{% block body %}
+<style>
+.room{display:grid;grid-template-columns:2fr 1fr;gap:1rem}@media(max-width:760px){.room{grid-template-columns:1fr}}
+.vid{position:relative;background:#0e1726;border-radius:8px;overflow:hidden;aspect-ratio:4/3}
+#remote{width:100%;height:100%;object-fit:cover}#local{position:absolute;right:8px;bottom:8px;width:28%;border-radius:6px;border:2px solid #fff}
+#status{position:absolute;left:10px;top:8px;color:#fff;font-size:.9rem}
+#log{height:300px;overflow:auto;border:1px solid var(--line);border-radius:6px;padding:.5rem;margin-bottom:.5rem;background:#fff}
+#log p{margin:.2rem 0;word-break:break-word}
+</style>
+<div class="room"><div><div class="vid"><video id="remote" autoplay playsinline></video><video id="local" autoplay playsinline muted></video><span id="status">Starting camera...</span></div>
+<p class="row"><button id="mic" class="alt">Mute mic</button><button id="cam" class="alt">Turn camera off</button><a class="btn" href="{{ url_for('dashboard') }}">Leave call</a></p></div>
+<div class="card"><h2>Chat</h2><div id="log" aria-live="polite"></div>
+<form id="f" class="row"><input id="msg" style="flex:1" placeholder="Type a message or paste a link" autocomplete="off"><button>Send</button></form></div></div>
+<script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
+<script>
+const token="{{ token }}",me={{ me|tojson }},sock=io(),log=document.getElementById("log"),st=document.getElementById("status");
+function add(name,body){const p=document.createElement("p"),b=document.createElement("b");b.textContent=name+": ";p.append(b);
+ body.split(/(https?:\/\/\S+)/g).forEach((x,i)=>{if(i%2){const a=document.createElement("a");a.href=x;a.textContent=x;a.target="_blank";a.rel="noopener noreferrer";p.append(a)}else p.append(document.createTextNode(x))});
+ log.append(p);log.scrollTop=log.scrollHeight}
+document.getElementById("f").onsubmit=e=>{e.preventDefault();const i=document.getElementById("msg");if(i.value.trim())sock.emit("chat",{token,body:i.value});i.value=""};
+sock.on("chat",m=>add(m.name,m.body));sock.on("history",h=>h.forEach(m=>add(m.name,m.body)));
+sock.on("denied",()=>{st.textContent="Access denied";});
+
+const pc=new RTCPeerConnection({iceServers:[{urls:"stun:stun.l.google.com:19302"}]});  // add a TURN server for production
+const send=payload=>sock.emit("signal",{token,payload});
+let stream;
+pc.onicecandidate=e=>e.candidate&&send({ice:e.candidate});
+pc.ontrack=e=>{document.getElementById("remote").srcObject=e.streams[0];st.textContent="Connected"};
+pc.onconnectionstatechange=()=>{if(["disconnected","failed"].includes(pc.connectionState))st.textContent="Connection lost. Waiting to reconnect..."};
+sock.on("peer-joined",async()=>{await pc.setLocalDescription(await pc.createOffer());send({sdp:pc.localDescription})});
+sock.on("signal",async p=>{
+ if(p.sdp){await pc.setRemoteDescription(p.sdp);if(p.sdp.type==="offer"){await pc.setLocalDescription(await pc.createAnswer());send({sdp:pc.localDescription})}}
+ else if(p.ice){try{await pc.addIceCandidate(p.ice)}catch(e){}}});
+(async()=>{try{stream=await navigator.mediaDevices.getUserMedia({video:true,audio:true});
+ document.getElementById("local").srcObject=stream;stream.getTracks().forEach(t=>pc.addTrack(t,stream));st.textContent="Waiting for the other person...";
+ sock.emit("join",token)}catch(e){st.textContent="Allow camera and microphone access, then reload."}})();
+function toggle(id,kind,on,off){const b=document.getElementById(id);b.onclick=()=>{const t=stream&&stream.getTracks().find(t=>t.kind===kind);if(!t)return;t.enabled=!t.enabled;b.textContent=t.enabled?on:off}}
+toggle("mic","audio","Mute mic","Unmute mic");toggle("cam","video","Turn camera off","Turn camera on");
+</script>{% endblock %}

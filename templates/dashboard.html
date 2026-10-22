@@ -1,0 +1,33 @@
+{% extends "base.html" %}{% block body %}
+<h1>My sessions</h1>
+{% for b in bookings %}<div class="card">
+<h2>{{ b.start_at.strftime('%a %d %b, %I:%M %p') }} with {{ b.other_name }}</h2>
+<p class="muted">{{ b.topic or 'No topic given' }}</p>
+<div class="row">
+{% if b.end_at + (b.end_at-b.end_at) > now %}<a class="btn" href="{{ url_for('room', token=b.room_token) }}">Join video call</a>{% endif %}
+<a class="btn" style="background:#fff;color:var(--ink);border:1px solid var(--line)" href="{{ url_for('ics', bid=b.id) }}">Add to calendar</a>
+<form method="post" action="{{ url_for('cancel', bid=b.id) }}"><button class="alt">Cancel</button></form></div>
+{% if session.role=='mentor' %}<form method="post" action="{{ url_for('notes', bid=b.id) }}" style="margin-top:.7rem">
+<label>Session notes and action items (the mentee can see these)<textarea name="notes" rows="2">{{ b.notes or '' }}</textarea></label><button class="alt">Save notes</button></form>
+{% elif b.notes %}<p><b>Mentor notes:</b> {{ b.notes }}</p>{% endif %}
+</div>{% else %}<div class="card">No upcoming sessions. {% if session.role=='mentee' %}<a href="{{ url_for('mentors') }}">Find a mentor</a>{% else %}Add your availability below so mentees can book you.{% endif %}</div>{% endfor %}
+
+{% if session.role=='mentor' %}
+<div class="card"><h2>Your weekly availability</h2>
+{% set days=['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday'] %}
+{% for a in av %}<form method="post" action="{{ url_for('del_availability', aid=a.id) }}" class="row" style="margin-bottom:.3rem">
+<span>{{ days[a.weekday] }}, {{ (a.start_time.seconds//3600)|string }}:{{ '%02d'|format(a.start_time.seconds%3600//60) }} to {{ (a.end_time.seconds//3600)|string }}:{{ '%02d'|format(a.end_time.seconds%3600//60) }}</span><button class="alt">Remove</button></form>{% endfor %}
+<form method="post" action="{{ url_for('add_availability') }}" class="row">
+<label>Day<select name="weekday">{% for d in days %}<option value="{{ loop.index0 }}">{{ d }}</option>{% endfor %}</select></label>
+<label>From<input type="time" name="start" required></label><label>To<input type="time" name="end" required></label><button>Add window</button></form></div>
+
+<div class="card"><h2>Your mentor profile</h2>
+<form method="post" action="{{ url_for('save_profile') }}">
+<label>Headline<input name="headline" value="{{ p.headline }}" style="width:100%" placeholder="Engineering Director at a fintech company"></label>
+<div class="row"><label>Industry<input name="industry" value="{{ p.industry }}"></label>
+<label>Years of experience<input name="years_exp" type="number" min="0" value="{{ p.years_exp }}"></label>
+<label>Session length<select name="slot_minutes">{% for n in (20,30,45,60) %}<option {{ 'selected' if p.slot_minutes==n }}>{{ n }}</option>{% endfor %}</select></label></div>
+<label>Skills you can coach (comma separated)<input name="skills" value="{{ p.skills }}" style="width:100%"></label>
+<label>About you<textarea name="bio" rows="3">{{ p.bio or '' }}</textarea></label>
+<label>Calendly link (optional)<input name="calendly_url" value="{{ p.calendly_url or '' }}" style="width:100%"></label>
+<p><button>Save profile</button></p></form></div>{% endif %}{% endblock %}

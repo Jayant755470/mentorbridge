@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>MentorBridge</title>
+<style>
+:root{--ink:#1b2a41;--mute:#5d6b7e;--bg:#eef2f6;--card:#fff;--line:#d5dde7;--go:#0f766e;--hi:#e8a317}
+*{box-sizing:border-box}
+body{margin:0;font:16px/1.55 "Segoe UI",system-ui,sans-serif;color:var(--ink);background:var(--bg)}
+header{background:var(--ink);color:#fff;padding:.8rem 1.2rem;display:flex;gap:1.2rem;align-items:center;flex-wrap:wrap}
+header b{font-size:1.15rem;margin-right:auto;letter-spacing:.2px}
+header a{color:#dbe4f0;text-decoration:none}header a:hover{color:var(--hi)}
+main{max-width:980px;margin:1.5rem auto;padding:0 1rem}
+h1,h2{line-height:1.2}h1{font-size:1.7rem}h2{font-size:1.2rem;margin-top:0}
+.card{background:var(--card);border:1px solid var(--line);border-radius:8px;padding:1.1rem;margin-bottom:1rem}
+.row{display:flex;gap:.6rem;flex-wrap:wrap;align-items:end}
+input,select,textarea,button{font:inherit;padding:.5rem .65rem;border:1px solid var(--line);border-radius:6px;background:#fff}
+textarea{width:100%}
+label{display:block;font-size:.88rem;color:var(--mute)}
+button,.btn{background:var(--go);color:#fff;border:0;cursor:pointer;text-decoration:none;display:inline-block;padding:.5rem .9rem;border-radius:6px}
+button.alt{background:#fff;color:var(--ink);border:1px solid var(--line)}
+button.slot{background:#fff;color:var(--go);border:1px solid var(--go);margin:.15rem}
+button:focus-visible,a:focus-visible,input:focus-visible{outline:3px solid var(--hi);outline-offset:2px}
+.flash{background:#fff7e0;border:1px solid var(--hi);padding:.6rem .9rem;border-radius:6px;margin-bottom:1rem}
+.muted{color:var(--mute);font-size:.92rem}.tag{background:#e3ebf5;border-radius:4px;padding:.05rem .45rem;font-size:.85rem;margin-right:.3rem}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(290px,1fr));gap:1rem}
+</style></head><body>
+<header><b>MentorBridge</b>
+{% if session.uid %}<a href="{{ url_for('mentors') }}">Find mentors</a><a href="{{ url_for('dashboard') }}">My sessions</a>
+<a href="{{ url_for('logout') }}">Log out ({{ session.name }})</a>{% endif %}</header>
+<main>{% for m in get_flashed_messages() %}<div class="flash" role="status">{{ m }}</div>{% endfor %}
+{% block body %}{% endblock %}</main></body></html>

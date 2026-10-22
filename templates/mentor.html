@@ -1,0 +1,13 @@
+{% extends "base.html" %}{% block body %}
+<div class="card"><h1>{{ m.name }}</h1><p>{{ m.headline }}</p>
+<p class="muted">{{ m.industry }} &middot; {{ m.years_exp }} years &middot; {{ m.slot_minutes }}-minute sessions</p>
+<p>{{ m.bio }}</p>
+{% if m.calendly_url %}<p><a href="{{ m.calendly_url }}" target="_blank" rel="noopener">Prefer Calendly? Open {{ m.name.split()[0] }}'s Calendly page</a></p>{% endif %}</div>
+<div class="card"><h2>Pick a time (India Standard Time)</h2>
+{% if session.role!='mentee' %}<p class="muted">Log in as a mentee to book.</p>{% endif %}
+<form method="post" action="{{ url_for('book_slot', mid=m.id) }}">
+<label>What would you like to discuss?<input name="topic" style="width:100%" maxlength="255"></label>
+{% for d, slots in days.items() %}<p><b>{{ d.strftime('%A, %d %B') }}</b><br>
+{% for s in slots %}<button class="slot" name="start" value="{{ s.strftime('%Y-%m-%d %H:%M') }}" {{ 'disabled' if session.role!='mentee' }}>{{ s.strftime('%I:%M %p') }}</button>{% endfor %}</p>
+{% else %}<p>No open slots in the next 2 weeks. Check back soon.</p>{% endfor %}
+</form></div>{% endblock %}

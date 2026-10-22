@@ -1,0 +1,5 @@
+Flask==3.0.3
+Flask-SocketIO==5.3.6
+PyMySQL==1.1.1
+simple-websocket==1.0.0
+gunicorn==22.0.0

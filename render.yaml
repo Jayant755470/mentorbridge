@@ -1,0 +1,26 @@
+services:
+  - type: web
+    name: mentorbridge
+    runtime: python
+    plan: free
+    buildCommand: pip install -r requirements.txt
+    startCommand: gunicorn -w 1 --threads 100 -b 0.0.0.0:$PORT app:app
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.12.3
+      - key: TZ
+        value: Asia/Kolkata
+      - key: SECRET_KEY
+        generateValue: true
+      - key: DB_SSL
+        value: "1"
+      - key: DB_HOST
+        sync: false
+      - key: DB_PORT
+        sync: false
+      - key: DB_USER
+        sync: false
+      - key: DB_PASSWORD
+        sync: false
+      - key: DB_NAME
+        sync: false
